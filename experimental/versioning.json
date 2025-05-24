@@ -1,16 +1,16 @@
 {
-  "buildTime": "2025-05-24T13:03:04.903Z",
+  "buildTime": "2025-05-24T13:38:52.883Z",
   "builtWith": {
     "toolchain": "1.0.0-alpha.52",
     "types": "1.0.0-alpha.52"
   },
   "repository": {
-    "name": "Onigiri 🍙",
+    "name": "Onigiri 🍙 (Experimental)",
     "description": "A content provider extension for Paperback 0.9."
   },
   "sources": [
     {
-      "version": "0.1.0",
+      "version": "0.1.0-20250524133852",
       "name": "Dynasty Reader",
       "icon": "icon.jpg",
       "description": "Extension that pulls content from dynasty-scans.com.",
