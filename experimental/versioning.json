@@ -1,0 +1,36 @@
+{
+  "buildTime": "2025-05-24T13:03:04.903Z",
+  "builtWith": {
+    "toolchain": "1.0.0-alpha.52",
+    "types": "1.0.0-alpha.52"
+  },
+  "repository": {
+    "name": "Onigiri 🍙",
+    "description": "A content provider extension for Paperback 0.9."
+  },
+  "sources": [
+    {
+      "version": "0.1.0",
+      "name": "Dynasty Reader",
+      "icon": "icon.jpg",
+      "description": "Extension that pulls content from dynasty-scans.com.",
+      "contentRating": "MATURE",
+      "developers": [
+        {
+          "name": "Kagari Mimi",
+          "website": "https://kagari-mimi.github.io/onigiri",
+          "github": "https://github.com/kagari-mimi"
+        }
+      ],
+      "language": "English",
+      "badges": [],
+      "capabilities": [
+        1,
+        4,
+        64,
+        32
+      ],
+      "id": "DynastyScans"
+    }
+  ]
+}
