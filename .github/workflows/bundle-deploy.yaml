@@ -30,6 +30,10 @@ jobs:
       - name: Add "experimental" tag to experimental repository
         if: github.ref_name == 'experimental'
         run: sed -i 's/Onigiri 🍙/Onigiri 🍙 (Experimental)/' package.json
+      - name: Suffix timestamp to version number on experimental branch
+        if: github.ref_name == 'experimental'
+        run: |
+          sed -i "s/\(version: \"[^\"]*\)/\1-$(date +%Y%m%d%H%M%S)/" src/DynastyScans/pbconfig.ts
       - name: Bundle Extensions
         run: npm run bundle
       - name: Deploy to GitHub Pages
