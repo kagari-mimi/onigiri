@@ -23,6 +23,7 @@
     "@paperback/toolchain": "^1.0.0-alpha.52",
     "@paperback/types": "^1.0.0-alpha.52",
     "@types/eslint": "^9.6.1",
+    "cheerio": "^1.0.0",
     "eslint": "^9.27.0",
     "husky": "^9.1.7",
     "prettier": "^3.5.3",
