@@ -1,7 +1,7 @@
 {
-  "name": "template-extensions",
-  "repositoryName": "Template Extensions (0.9)",
-  "description": "Paperback extensions designed as templates to help developers get started quickly. Maintained by Inkdex.",
+  "name": "onigiri",
+  "repositoryName": "Onigiri 🍙",
+  "description": "A content provider extension for Paperback 0.9.",
   "private": true,
   "type": "module",
   "scripts": {
