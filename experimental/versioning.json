@@ -1,5 +1,5 @@
 {
-  "buildTime": "2025-05-24T13:38:52.883Z",
+  "buildTime": "2025-05-24T15:10:38.559Z",
   "builtWith": {
     "toolchain": "1.0.0-alpha.52",
     "types": "1.0.0-alpha.52"
@@ -10,7 +10,7 @@
   },
   "sources": [
     {
-      "version": "0.1.0-20250524133852",
+      "version": "0.1.0-20250524151038",
       "name": "Dynasty Reader",
       "icon": "icon.jpg",
       "description": "Extension that pulls content from dynasty-scans.com.",

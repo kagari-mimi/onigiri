@@ -1819,6 +1819,7 @@ var source = (() => {
   });
   init_buffer();
   var DynastyScansExtension = class {
+    // Extension implementation
     async initialise() {
     }
   };
