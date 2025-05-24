@@ -9151,11 +9151,11 @@ var source = (() => {
         $(".chapters .chapter").each((index2, element) => {
           const chapterData = chapters[index2];
           const chapterElement = $(element);
-          const mangaId = chapterData.series ? chapterData.tags[0].permalink : "oneshot";
+          const mangaId = chapterData.series ? chapterData.tags.find((tag) => tag.type == "Series")?.permalink || chapterData.permalink : "oneshot:" + chapterData.permalink;
           const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src");
           const chapterId = chapterData.permalink;
           const title = chapterData.series || chapterData.title;
-          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim() : void 0;
+          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch/, "Ch. ") : chapterElement.find(".title small").first().text();
           const contentRating = chapterData.tags.some(
             (tag) => tag.permalink == "nsfw"
           ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
