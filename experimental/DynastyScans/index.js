@@ -9207,7 +9207,7 @@ var source = (() => {
           const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src")?.replace("thumbnail.jpg", "medium.jpg");
           const chapterId = chapterData.permalink;
           const title = chapterData.series || chapterData.title;
-          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ").replace(/^: /, "") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
+          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ").replace(/^: /, "") : anthologyTag ? "Anthology: " + anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
           const contentRating = chapterData.tags.some(
             (tag) => tag.permalink == "nsfw"
           ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
