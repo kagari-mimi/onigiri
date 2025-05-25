@@ -9118,6 +9118,7 @@ var source = (() => {
         this.fetchHomepageJson()
       ]);
       const latestUpdates = [];
+      const collectedMangaIds = [];
       $(".chapters .chapter").each((index2, element) => {
         const chapterData = json.chapters[index2];
         const chapterElement = $(element);
@@ -9132,22 +9133,25 @@ var source = (() => {
         } else {
           mangaId = "oneshots/" + chapterData.permalink;
         }
-        const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src")?.replace("thumbnail.jpg", "medium.jpg");
-        const chapterId = chapterData.permalink;
-        const title = chapterData.series || chapterData.title;
-        const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
-        const contentRating = chapterData.tags.some(
-          (tag) => tag.permalink == "nsfw"
-        ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
-        latestUpdates.push({
-          type: "chapterUpdatesCarouselItem",
-          mangaId,
-          chapterId,
-          imageUrl,
-          title,
-          subtitle,
-          contentRating
-        });
+        if (!collectedMangaIds.includes(mangaId)) {
+          const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src")?.replace("thumbnail.jpg", "medium.jpg");
+          const chapterId = chapterData.permalink;
+          const title = chapterData.series || chapterData.title;
+          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
+          const contentRating = chapterData.tags.some(
+            (tag) => tag.permalink == "nsfw"
+          ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
+          latestUpdates.push({
+            type: "chapterUpdatesCarouselItem",
+            mangaId,
+            chapterId,
+            imageUrl,
+            title,
+            subtitle,
+            contentRating
+          });
+          collectedMangaIds.push(mangaId);
+        }
       });
       return { items: latestUpdates };
     }
