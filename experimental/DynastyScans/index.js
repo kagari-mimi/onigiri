@@ -9102,9 +9102,9 @@ var source = (() => {
 
   // src/DynastyScans/providers/HomepageProvider.ts
   var HomepageProvider = class {
-    /**
-     * Store latest updates from the homepage.
-     */
+    // List of anthology tags to ignore
+    notAnthologies = ["pixiv", "oneshots", "no_title"];
+    // Store latest updates from the homepage
     latestUpdates = [];
     /**
      * Returns latest update chapters from the home page.
@@ -9152,7 +9152,7 @@ var source = (() => {
           const chapterData = chapters[index2];
           const chapterElement = $(element);
           const anthologyTag = chapterData.tags.find(
-            (tag) => tag.type == "Anthology"
+            (tag) => tag.type == "Anthology" && !this.notAnthologies.includes(tag.permalink)
           );
           let mangaId = void 0;
           if (chapterData.series) {
@@ -9165,7 +9165,7 @@ var source = (() => {
           const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src")?.replace("thumbnail.jpg", "medium.jpg");
           const chapterId = chapterData.permalink;
           const title = chapterData.series || chapterData.title;
-          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text();
+          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
           const contentRating = chapterData.tags.some(
             (tag) => tag.permalink == "nsfw"
           ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
