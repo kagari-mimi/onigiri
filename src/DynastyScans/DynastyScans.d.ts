@@ -1,4 +1,9 @@
 declare namespace DynastyScans {
+  interface Metadata {
+    page?: number;
+    collectedMangaIds?: string[];
+  }
+
   interface PaginatedResponse {
     chapters?: Chapter[];
     current_page: number;
