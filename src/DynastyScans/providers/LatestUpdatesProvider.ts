@@ -111,6 +111,7 @@ export class LatestUpdatesProvider {
               .replace(chapterData.series, "")
               .trim()
               .replace(/^ch0?/, "Ch. ")
+              .replace(/^: /, "")
           : anthologyTag
             ? anthologyTag.name
             : chapterElement.find(".title small").first().text() || "Oneshot";
