@@ -29,6 +29,7 @@ export class HomepageProvider {
       this.fetchHomepageJson(),
     ]);
     const latestUpdates: DiscoverSectionItem[] = [];
+    const collectedMangaIds: string[] = [];
 
     // Extract latest updates
     $(".chapters .chapter").each((index, element) => {
@@ -57,56 +58,62 @@ export class HomepageProvider {
         mangaId = "oneshots/" + chapterData.permalink;
       }
 
-      // imageUrl: from `<img>` tag on the HTML page, substitute thumbnail
-      // size to medium size.
-      const imageUrl =
-        "https://dynasty-scans.com" +
-        chapterElement
-          .find("img")
-          .first()
-          .attr("src")
-          ?.replace("thumbnail.jpg", "medium.jpg");
+      // Only display each manga once
+      if (!collectedMangaIds.includes(mangaId)) {
+        // imageUrl: from `<img>` tag on the HTML page, substitute thumbnail
+        // size to medium size.
+        const imageUrl =
+          "https://dynasty-scans.com" +
+          chapterElement
+            .find("img")
+            .first()
+            .attr("src")
+            ?.replace("thumbnail.jpg", "medium.jpg");
 
-      // chapterId: chapter's permalink (as it's unique).
-      const chapterId = chapterData.permalink;
+        // chapterId: chapter's permalink (as it's unique).
+        const chapterId = chapterData.permalink;
 
-      // title: Use `series` if available, and fallback to `title` for
-      // oneshots.
-      const title = chapterData.series || chapterData.title;
+        // title: Use `series` if available, and fallback to `title` for
+        // oneshots.
+        const title = chapterData.series || chapterData.title;
 
-      // subtitle:
-      // - If the chapter is part of a series, remove the series' title from
-      //   chapter's title to get the chapter number and chapter name.
-      // - If the chapter is part of an anthology, display the anthology's
-      //   name using the tag.
-      // - If the chapter is a oneshot, display the text inside `<small>` tag.
-      //   Usually this will say "Original Doujin"or something.
-      const subtitle = chapterData.series
-        ? chapterData.title
-            .replace(chapterData.series, "")
-            .trim()
-            .replace(/^ch0?/, "Ch. ")
-        : anthologyTag
-          ? anthologyTag.name
-          : chapterElement.find(".title small").first().text() || "Oneshot";
+        // subtitle:
+        // - If the chapter is part of a series, remove the series' title from
+        //   chapter's title to get the chapter number and chapter name.
+        // - If the chapter is part of an anthology, display the anthology's
+        //   name using the tag.
+        // - If the chapter is a oneshot, display the text inside `<small>` tag.
+        //   Usually this will say "Original Doujin"or something.
+        const subtitle = chapterData.series
+          ? chapterData.title
+              .replace(chapterData.series, "")
+              .trim()
+              .replace(/^ch0?/, "Ch. ")
+          : anthologyTag
+            ? anthologyTag.name
+            : chapterElement.find(".title small").first().text() || "Oneshot";
 
-      // contentRating: if it's tagged with NSFW, then it's ADULT.
-      const contentRating = chapterData.tags.some(
-        (tag) => tag.permalink == "nsfw",
-      )
-        ? ContentRating.ADULT
-        : ContentRating.EVERYONE;
+        // contentRating: if it's tagged with NSFW, then it's ADULT.
+        const contentRating = chapterData.tags.some(
+          (tag) => tag.permalink == "nsfw",
+        )
+          ? ContentRating.ADULT
+          : ContentRating.EVERYONE;
 
-      // Construct latest update chapter
-      latestUpdates.push({
-        type: "chapterUpdatesCarouselItem",
-        mangaId: mangaId,
-        chapterId: chapterId,
-        imageUrl: imageUrl,
-        title: title,
-        subtitle: subtitle,
-        contentRating: contentRating,
-      });
+        // Construct latest update chapter
+        latestUpdates.push({
+          type: "chapterUpdatesCarouselItem",
+          mangaId: mangaId,
+          chapterId: chapterId,
+          imageUrl: imageUrl,
+          title: title,
+          subtitle: subtitle,
+          contentRating: contentRating,
+        });
+
+        // Store current mangaId for de-duplication
+        collectedMangaIds.push(mangaId);
+      }
     });
 
     return { items: latestUpdates };
