@@ -3076,7 +3076,6 @@ var source = (() => {
 
   // src/DynastyScans/providers/HomepageProvider.ts
   init_buffer();
-  var import_types2 = __toESM(require_lib(), 1);
 
   // node_modules/cheerio/dist/browser/slim.js
   init_buffer();
@@ -9112,48 +9111,21 @@ var source = (() => {
     /**
      * Returns latest update chapters from the home page.
      */
-    async getLatestUpdates() {
+    async getLatestUpdates(latestUpdatesProvider) {
       const [$, json] = await Promise.all([
         this.fetchHomepageHtml(),
         this.fetchHomepageJson()
       ]);
-      const latestUpdates = [];
       const collectedMangaIds = [];
-      $(".chapters .chapter").each((index2, element) => {
-        const chapterData = json.chapters[index2];
-        const chapterElement = $(element);
-        const anthologyTag = chapterData.tags.find(
-          (tag) => tag.type == "Anthology" && !this.notAnthologies.includes(tag.permalink)
-        );
-        let mangaId = void 0;
-        if (chapterData.series) {
-          mangaId = "series/" + chapterData.tags.find((tag) => tag.type == "Series").permalink;
-        } else if (anthologyTag) {
-          mangaId = "anthologies/" + anthologyTag.permalink;
-        } else {
-          mangaId = "oneshots/" + chapterData.permalink;
-        }
-        if (!collectedMangaIds.includes(mangaId)) {
-          const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src")?.replace("thumbnail.jpg", "medium.jpg");
-          const chapterId = chapterData.permalink;
-          const title = chapterData.series || chapterData.title;
-          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
-          const contentRating = chapterData.tags.some(
-            (tag) => tag.permalink == "nsfw"
-          ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
-          latestUpdates.push({
-            type: "chapterUpdatesCarouselItem",
-            mangaId,
-            chapterId,
-            imageUrl,
-            title,
-            subtitle,
-            contentRating
-          });
-          collectedMangaIds.push(mangaId);
-        }
-      });
-      return { items: latestUpdates };
+      const items = await latestUpdatesProvider.constructDiscoverSectionItems(
+        $,
+        json,
+        collectedMangaIds
+      );
+      return {
+        items,
+        metadata: json.current_page < json.total_pages ? { page: json.current_page + 1, collectedMangaIds } : void 0
+      };
     }
     // Fetch HTML content of the homepage
     async fetchHomepageHtml() {
@@ -9184,10 +9156,101 @@ var source = (() => {
     }
   };
 
+  // src/DynastyScans/providers/LatestUpdatesProvider.ts
+  init_buffer();
+  var import_types2 = __toESM(require_lib(), 1);
+  var LatestUpdatesProvider = class {
+    // Base URL for the latest updates
+    baseUrl = "https://dynasty-scans.com";
+    // List of anthology tags to ignore
+    notAnthologies = ["pixiv", "oneshots", "no_title"];
+    /**
+     * Returns latest update chapters
+     */
+    async getLatestUpdates(metadata) {
+      const page = metadata?.page ?? 1;
+      const collectedMangaIds = metadata?.collectedMangaIds ?? [];
+      const [$, json] = await Promise.all([
+        this.fetchHtml(page),
+        this.fetchJson(page)
+      ]);
+      const items = await this.constructDiscoverSectionItems(
+        $,
+        json,
+        collectedMangaIds
+      );
+      return {
+        items,
+        metadata: json.current_page < json.total_pages ? { page: json.current_page + 1, collectedMangaIds } : void 0
+      };
+    }
+    /**
+     * Construct an array of `DiscoverSectionItem` using HTML and JSON data.
+     */
+    async constructDiscoverSectionItems($, json, collectedMangaIds) {
+      const discoverSectionItems = [];
+      $(".chapters .chapter").each((index2, element) => {
+        const chapterData = json.chapters[index2];
+        const chapterElement = $(element);
+        const anthologyTag = chapterData.tags.find(
+          (tag) => tag.type == "Anthology" && !this.notAnthologies.includes(tag.permalink)
+        );
+        let mangaId = void 0;
+        if (chapterData.series) {
+          mangaId = "series/" + chapterData.tags.find((tag) => tag.type == "Series").permalink;
+        } else if (anthologyTag) {
+          mangaId = "anthologies/" + anthologyTag.permalink;
+        } else {
+          mangaId = "oneshots/" + chapterData.permalink;
+        }
+        if (!collectedMangaIds.includes(mangaId)) {
+          const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src")?.replace("thumbnail.jpg", "medium.jpg");
+          const chapterId = chapterData.permalink;
+          const title = chapterData.series || chapterData.title;
+          const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
+          const contentRating = chapterData.tags.some(
+            (tag) => tag.permalink == "nsfw"
+          ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
+          discoverSectionItems.push({
+            type: "chapterUpdatesCarouselItem",
+            mangaId,
+            chapterId,
+            imageUrl,
+            title,
+            subtitle,
+            contentRating
+          });
+          collectedMangaIds.push(mangaId);
+        }
+      });
+      return discoverSectionItems;
+    }
+    // Fetch HTML content of the latest updates
+    async fetchHtml(page) {
+      const [, buffer] = await Application.scheduleRequest({
+        url: this.baseUrl + "?page=" + page,
+        method: "GET"
+      });
+      const html3 = Application.arrayBufferToUTF8String(buffer);
+      return load(html3);
+    }
+    // Fetch JSON data of the latest updates
+    async fetchJson(page) {
+      const [, buffer] = await Application.scheduleRequest({
+        url: this.baseUrl + "?format=json&page=" + page,
+        method: "GET"
+      });
+      return JSON.parse(
+        Application.arrayBufferToUTF8String(buffer)
+      );
+    }
+  };
+
   // src/DynastyScans/main.ts
   var DynastyScansExtension = class {
     // Provider instances for different functions of the extension
     homepageProvider = new HomepageProvider();
+    latestUpdatesProvider = new LatestUpdatesProvider();
     // Extension implementation
     async initialise() {
     }
@@ -9201,10 +9264,10 @@ var source = (() => {
         }
       ];
     }
-    async getDiscoverSectionItems(section) {
+    async getDiscoverSectionItems(section, metadata) {
       switch (section.id) {
         case "latest_updates":
-          return this.homepageProvider.getLatestUpdates();
+          return metadata == void 0 ? this.homepageProvider.getLatestUpdates(this.latestUpdatesProvider) : this.latestUpdatesProvider.getLatestUpdates(metadata);
         default:
           return { items: [] };
       }
