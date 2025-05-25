@@ -113,7 +113,7 @@ export class LatestUpdatesProvider {
               .replace(/^ch0?/, "Ch. ")
               .replace(/^: /, "")
           : anthologyTag
-            ? anthologyTag.name
+            ? "Anthology: " + anthologyTag.name
             : chapterElement.find(".title small").first().text() || "Oneshot";
 
         // contentRating: if it's tagged with NSFW, then it's ADULT.
