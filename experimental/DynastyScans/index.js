@@ -9102,97 +9102,81 @@ var source = (() => {
 
   // src/DynastyScans/providers/HomepageProvider.ts
   var HomepageProvider = class {
+    // Base URL for the homepage
+    baseUrl = "https://dynasty-scans.com";
     // List of anthology tags to ignore
     notAnthologies = ["pixiv", "oneshots", "no_title"];
-    // Store latest updates from the homepage
-    latestUpdates = [];
     // Concurrency control for fetching the homepage
-    isLoading = false;
-    loadingPromise = null;
+    isLoadingHomepageHtml = false;
+    homepageHtmlPromise = null;
     /**
      * Returns latest update chapters from the home page.
      */
     async getLatestUpdates() {
-      await this.fetchHomepageData();
-      return { items: this.latestUpdates };
+      const [$, json] = await Promise.all([
+        this.fetchHomepageHtml(),
+        this.fetchHomepageJson()
+      ]);
+      const latestUpdates = [];
+      $(".chapters .chapter").each((index2, element) => {
+        const chapterData = json.chapters[index2];
+        const chapterElement = $(element);
+        const anthologyTag = chapterData.tags.find(
+          (tag) => tag.type == "Anthology" && !this.notAnthologies.includes(tag.permalink)
+        );
+        let mangaId = void 0;
+        if (chapterData.series) {
+          mangaId = "series/" + chapterData.tags.find((tag) => tag.type == "Series").permalink;
+        } else if (anthologyTag) {
+          mangaId = "anthologies/" + anthologyTag.permalink;
+        } else {
+          mangaId = "oneshots/" + chapterData.permalink;
+        }
+        const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src")?.replace("thumbnail.jpg", "medium.jpg");
+        const chapterId = chapterData.permalink;
+        const title = chapterData.series || chapterData.title;
+        const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
+        const contentRating = chapterData.tags.some(
+          (tag) => tag.permalink == "nsfw"
+        ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
+        latestUpdates.push({
+          type: "chapterUpdatesCarouselItem",
+          mangaId,
+          chapterId,
+          imageUrl,
+          title,
+          subtitle,
+          contentRating
+        });
+      });
+      return { items: latestUpdates };
     }
-    // Fetch homepage and extract data for various discovery sections
-    async fetchHomepageData() {
-      if (this.isLoading && this.loadingPromise) {
-        await this.loadingPromise;
+    // Fetch HTML content of the homepage
+    async fetchHomepageHtml() {
+      if (this.isLoadingHomepageHtml && this.homepageHtmlPromise) {
+        return await this.homepageHtmlPromise;
       } else {
-        this.isLoading = true;
-        this.loadingPromise = (async () => {
-          const requests = [
-            { url: "https://dynasty-scans.com", method: "GET" },
-            { url: "https://dynasty-scans.com/?format=json", method: "GET" }
-          ];
-          let htmlBuffer = null;
-          let jsonBuffer = null;
-          try {
-            [htmlBuffer, jsonBuffer] = await Promise.all(
-              requests.map(
-                (request) => Application.scheduleRequest(request).then(([, buffer]) => buffer)
-              )
-            );
-          } catch (error) {
-            console.error("Failed to fetch homepage data:", error);
-            htmlBuffer = jsonBuffer = null;
-          }
-          let $;
-          let chapters;
-          if (htmlBuffer) {
-            const htmlResponseBody = Application.arrayBufferToUTF8String(htmlBuffer);
-            $ = load(htmlResponseBody);
-          }
-          if (jsonBuffer) {
-            try {
-              const response = JSON.parse(
-                Application.arrayBufferToUTF8String(jsonBuffer)
-              );
-              chapters = response.chapters;
-            } catch (error) {
-              console.error("Failed to parse homepage JSON:", error);
-            }
-          }
-          if (chapters && $) {
-            $(".chapters .chapter").each((index2, element) => {
-              const chapterData = chapters[index2];
-              const chapterElement = $(element);
-              const anthologyTag = chapterData.tags.find(
-                (tag) => tag.type == "Anthology" && !this.notAnthologies.includes(tag.permalink)
-              );
-              let mangaId = void 0;
-              if (chapterData.series) {
-                mangaId = "series/" + chapterData.tags.find((tag) => tag.type == "Series").permalink;
-              } else if (anthologyTag) {
-                mangaId = "anthologies/" + anthologyTag.permalink;
-              } else {
-                mangaId = "oneshots/" + chapterData.permalink;
-              }
-              const imageUrl = "https://dynasty-scans.com" + chapterElement.find("img").first().attr("src")?.replace("thumbnail.jpg", "medium.jpg");
-              const chapterId = chapterData.permalink;
-              const title = chapterData.series || chapterData.title;
-              const subtitle = chapterData.series ? chapterData.title.replace(chapterData.series, "").trim().replace(/^ch0?/, "Ch. ") : anthologyTag ? anthologyTag.name : chapterElement.find(".title small").first().text() || "Oneshot";
-              const contentRating = chapterData.tags.some(
-                (tag) => tag.permalink == "nsfw"
-              ) ? import_types2.ContentRating.ADULT : import_types2.ContentRating.EVERYONE;
-              this.latestUpdates.push({
-                type: "chapterUpdatesCarouselItem",
-                mangaId,
-                chapterId,
-                imageUrl,
-                title,
-                subtitle,
-                contentRating
-              });
-              this.isLoading = false;
-              this.loadingPromise = null;
-            });
-          }
+        this.isLoadingHomepageHtml = true;
+        this.homepageHtmlPromise = (async () => {
+          const [, buffer] = await Application.scheduleRequest({
+            url: this.baseUrl,
+            method: "GET"
+          });
+          const html3 = Application.arrayBufferToUTF8String(buffer);
+          return load(html3);
         })();
-        await this.loadingPromise;
+        return await this.homepageHtmlPromise;
       }
+    }
+    // Fetch JSON data of the homepage
+    async fetchHomepageJson() {
+      const [, buffer] = await Application.scheduleRequest({
+        url: this.baseUrl + "?format=json",
+        method: "GET"
+      });
+      return JSON.parse(
+        Application.arrayBufferToUTF8String(buffer)
+      );
     }
   };
 
